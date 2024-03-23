@@ -65,9 +65,13 @@ def Speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# When the run then Comment Out this
-# openai_api_key = 'sk-LPUT6Gz3UiWj5F..................T3B..................' #YOUR API KEY
-# openai.api_key = openai_api_key
+from django.conf import settings
+
+# OpenAI API Key
+if settings.OPENAI_API_KEY:
+    openai.api_key = settings.OPENAI_API_KEY
+else:
+    raise Exception('OpenAI API Key not found')
 
 def Listen():
     r = sr.Recognizer()
