@@ -65,9 +65,9 @@ def Speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# openai_api_key = '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'
-# openai_api_key = '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'
-openai.api_key = openai_api_key
+# When the run then Comment Out this
+# openai_api_key = 'sk-LPUT6Gz3UiWj5F..................T3B..................' #YOUR API KEY
+# openai.api_key = openai_api_key
 
 def Listen():
     r = sr.Recognizer()
