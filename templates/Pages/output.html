@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevilBot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: url("https://images.pexels.com/photos/7130560/pexels-photo-7130560.jpeg?cs=srgb&dl=pexels-codioful-%28formerly-gradienta%29-7130560.jpg&fm=jpg");
+            color: #070707;
+        }
+
+        .container {
+            padding: 3rem;
+        }
+
+        .response-container {
+            border: 1px solid #502727;
+            border-radius: 10px;
+            overflow-y: auto;
+            height: 75vh;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .response-message {
+            border: 1px solid black;
+            padding: 5px;
+            border-radius: 10px;
+            background-image: linear-gradient(to right, #eed4e0, #c0d0f4);
+            color: rgb(0, 0, 0);
+        }
+
+        .code-block {
+            background-color: #212223;
+            border: 1px solid #ced4da;
+            color: white;
+            border-radius: .25rem;
+            padding: .5rem;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+
+        #chat-form {
+            display: flex;
+            gap: 0px 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="mb-3">
+            <h6></h6>
+            <div class="response-container" id="response"></div>
+        </div>
+        <div class="mb-3">
+            <form id="chat-form">
+                {% csrf_token %}
+                <label for="prompt" class="form-label"><strong>Prompt:</strong></label>
+                <textarea class="form-control" id="prompt" name="prompt" rows="1.2"></textarea>
+                <br>
+                <button class="btn btn-primary" type="submit">Submit</button>
+                <button class="btn btn-primary" id="record" type="button"><i
+                        class="fa-solid fa-microphone"></i></button>
+            </form>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.0/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#chat-form').submit(function (event) {
+                event.preventDefault();
+
+                var csrftoken = Cookies.get('csrftoken');
+                var headers = new Headers();
+                headers.append('X-CSRFToken', csrftoken);
+
+                var prompt = $('#prompt').val();
+
+                $('#response').append('<p class="response-message" style="background-image: linear-gradient(to right, #ee0979,#417aff );"> <i class="bi bi-person"></i>: ' + prompt + '</p>');
+                $('#prompt').val('');
+
+                fetch('/', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        prompt: prompt
+                    }),
+                    headers: headers
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (isCode(data.response)) {
+                            $('#response').append('<pre class="code-block">' + data.response + '</pre>');
+                        } else {
+                            $('#response').append('<p class="response-message"> <i class="bi bi-robot"></i>: ' + data.response + '</p>');
+                        }
+                        // Scroll to the bottom of the response container
+                        $('.response-container').scrollTop($('.response-container')[0].scrollHeight);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        $('#response').append('<p class="response-message"> <i class="bi bi-exclamation-triangle"></i>: An error occurred while processing your request.</p>');
+                    });
+            });
+
+            $('#prompt').keydown(function (event) {
+                if (event.keyCode === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    $('#chat-form').submit();
+                }
+            });
+            $('#record').click(function (e) {
+                e.preventDefault();
+                var recognition = new webkitSpeechRecognition();
+                recognition.onresult = function (event) {
+                    var result = event.results[0][0].transcript.trim(); // Trim whitespace
+                    if (result !== "") { // Check if the result is not empty
+                        $('#prompt').val(result);
+                        $('#chat-form').submit(); // Submit the form with non-empty prompt
+                    } else {
+                        // Handle case where speech recognition returns empty result
+                        alert("Speech not recognized. Please try again.");
+                    }
+                };
+                recognition.onerror = function (event) {
+                    console.error('Speech recognition error:', event.error);
+                    alert('Speech recognition error. Please try again.');
+                };
+                recognition.start();
+            });
+
+        });
+
+        function isCode(text) {
+            // Simple logic to check if the text contains code (for demonstration purposes)
+            // You can adjust this function based on your specific code detection requirements
+            return text.includes('```');
+        }
+    </script>
+    <script src="https://kit.fontawesome.com/5ad1c3260f.js" crossorigin="anonymous"></script>
+</body>
+
+</html>
