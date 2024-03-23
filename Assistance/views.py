@@ -66,7 +66,6 @@ def Speak(text):
     engine.runAndWait()
 
 from django.conf import settings
-
 # OpenAI API Key
 if settings.OPENAI_API_KEY:
     openai.api_key = settings.OPENAI_API_KEY
